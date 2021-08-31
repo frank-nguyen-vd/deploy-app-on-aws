@@ -1,1 +1,5 @@
-aws s3 cp --recursive --acl public-read ./www s3://my-bucket-202108/
+# If the directory, `dist`, doesn't exist, create `dist`
+stat dist || mkdir dist
+
+# Archive artifacts
+zip dist/$npm_package_name.zip -r build package.json package-lock.json

@@ -6,9 +6,11 @@
 import { inject } from "@loopback/core";
 import {
   get,
+  param,
   post,
   Request,
   requestBody,
+  response,
   Response,
   RestBindings,
 } from "@loopback/rest";
@@ -42,22 +44,19 @@ export class FileUploadController {
     @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler
   ) {}
 
-  @get("/files", {
-    responses: {
-      200: {
-        content: {
-          "application/json": {
-            schema: {
-              type: "array",
-              items: {
-                type: "string",
-              },
-            },
+  @get("/files")
+  @response(200, {
+    content: {
+      "application/json": {
+        schema: {
+          type: "array",
+          items: {
+            type: "string",
           },
         },
-        description: "A list of files",
       },
     },
+    description: "A list of files",
   })
   async listFiles() {
     const f = async () => {
@@ -77,19 +76,44 @@ export class FileUploadController {
     return f();
   }
 
-  @post("/files", {
-    responses: {
-      200: {
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-            },
-          },
+  @get("/files/download")
+  @response(200, {
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
         },
-        description: "Files and fields",
       },
     },
+    description: "Files and fields",
+  })
+  async getFile(@param.query.string("file") file: string) {
+    const f = async () => {
+      return new Promise((resolve, reject) => {
+        const params = {
+          Bucket: BUCKET_NAME,
+          Key: file,
+        };
+        s3.getObject(params, (err, data) => {
+          if (err) reject(err);
+          resolve(data.Body);
+        });
+      });
+    };
+
+    return f();
+  }
+
+  @post("/files")
+  @response(200, {
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+        },
+      },
+    },
+    description: "Files and fields",
   })
   async fileUpload(
     @requestBody.file()

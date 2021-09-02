@@ -5,6 +5,7 @@
 
 import { inject } from "@loopback/core";
 import {
+  get,
   post,
   Request,
   requestBody,
@@ -27,6 +28,8 @@ const s3 = new AWS.S3({
   secretAccessKey: process.env.AWS_ACCESS_KEY_SECRET,
 });
 
+const BUCKET_NAME = process.env.AWS_BUCKET_NAME ?? "";
+
 /**
  * A controller to handle file uploads using multipart/form-data media type
  */
@@ -38,6 +41,42 @@ export class FileUploadController {
   constructor(
     @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler
   ) {}
+
+  @get("/files", {
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+          },
+        },
+        description: "A list of files",
+      },
+    },
+  })
+  async listFiles() {
+    const f = async () => {
+      return new Promise((resolve, reject) => {
+        const params = {
+          Bucket: BUCKET_NAME,
+        };
+        let files: string[] = [];
+        s3.listObjectsV2(params, (err, data) => {
+          if (err) reject(err);
+          files = data.Contents?.map((obj) => obj.Key ?? "") ?? [];
+          resolve(files);
+        });
+      });
+    };
+
+    return f();
+  }
+
   @post("/files", {
     responses: {
       200: {

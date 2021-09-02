@@ -1,32 +1,25 @@
-import { Component, OnInit, Input, OnChanges } from '@angular/core';
-import { Photo } from '../models/photo';
+import { Component, Input, OnInit } from '@angular/core';
 import { PhotoService } from '../shared/photo.service';
+import { Buffer } from 'buffer';
 
 @Component({
-    selector: 'app-photo',
-    templateUrl: './photo.component.html',
-    styleUrls: ['./photo.component.css']
+  selector: 'app-photo',
+  templateUrl: './photo.component.html',
+  styleUrls: ['./photo.component.css'],
 })
-export class PhotoComponent implements OnChanges {
-    @Input() photo: Photo;
-    @Input() width: number;
-    @Input() height: number;
-    thumbnail: string = '';
+export class PhotoComponent implements OnInit {
+  @Input() photo: string;
+  @Input() width: number;
+  @Input() height: number;
+  thumbnail: string = '';
 
-    constructor(private photoService: PhotoService) {
-        this.photo = {
-            id: 0,
-            name: ''
-        };
-        this.width = 0;
-        this.height = 0;
-    }
+  constructor(private photoService: PhotoService) {
+    this.photo = '';
+    this.width = 300;
+    this.height = 300;
+  }
 
-    ngOnChanges(): void {
-        this.thumbnail = this.photoService.getPhotoWithSize(
-            this.photo.name,
-            this.width,
-            this.height
-        );
-    }
+  ngOnInit(): void {
+    this.thumbnail = this.photoService.getPhoto(this.photo);
+  }
 }

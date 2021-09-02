@@ -1,24 +1,21 @@
-import { Injectable } from '@angular/core';
-import { Photo } from '../models/photo';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+const url = 'http://imageapi-env.eba-q4ixnidc.us-east-1.elasticbeanstalk.com';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class PhotoService {
-    imageBaseUrl = 'http://localhost:3000/api/v1/images';
-    constructor(private http: HttpClient) {}
+  imageBaseUrl = `${url}/files`;
+  constructor(private http: HttpClient) {}
 
-    getPhotoNames(): Observable<Photo[]> {
-        return this.http.get<Photo[]>(this.imageBaseUrl);
-    }
+  getPhotoNames(): Observable<string[]> {
+    return this.http.get<string[]>(this.imageBaseUrl);
+  }
 
-    getPhotoWithSize(
-        name: string,
-        width: number = 0,
-        height: number = 0
-    ): string {
-        return `${this.imageBaseUrl}?filename=${name}&width=${width}&height=${height}`;
-    }
+  getPhoto(name: string): string {
+    return `${this.imageBaseUrl}/download?file=${name}`;
+  }
 }

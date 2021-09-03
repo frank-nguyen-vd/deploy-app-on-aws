@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { PhotoService } from '../shared/photo.service';
-import { Buffer } from 'buffer';
 
 @Component({
   selector: 'app-photo',

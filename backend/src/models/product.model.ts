@@ -32,7 +32,6 @@ export class Product extends Entity {
   })
   image: string;
 
-
   constructor(data?: Partial<Product>) {
     super(data);
   }

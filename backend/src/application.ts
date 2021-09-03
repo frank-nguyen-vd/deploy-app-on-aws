@@ -1,21 +1,21 @@
-import { BootMixin } from "@loopback/boot";
-import { ApplicationConfig } from "@loopback/core";
+import {BootMixin} from '@loopback/boot';
+import {ApplicationConfig} from '@loopback/core';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
-} from "@loopback/rest-explorer";
-import { RepositoryMixin } from "@loopback/repository";
-import { RestApplication } from "@loopback/rest";
-import { ServiceMixin } from "@loopback/service-proxy";
-import path from "path";
-import multer from "multer";
-import { MySequence } from "./sequence";
-import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY } from "./keys";
+} from '@loopback/rest-explorer';
+import {RepositoryMixin} from '@loopback/repository';
+import {RestApplication} from '@loopback/rest';
+import {ServiceMixin} from '@loopback/service-proxy';
+import path from 'path';
+import multer from 'multer';
+import {MySequence} from './sequence';
+import {FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY} from './keys';
 
-export { ApplicationConfig };
+export {ApplicationConfig};
 
 export class BackendApplication extends BootMixin(
-  ServiceMixin(RepositoryMixin(RestApplication))
+  ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
   constructor(options: ApplicationConfig = {}) {
     super(options);
@@ -24,11 +24,11 @@ export class BackendApplication extends BootMixin(
     this.sequence(MySequence);
 
     // Set up default home page
-    this.static("/", path.join(__dirname, "../public"));
+    this.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
     this.configure(RestExplorerBindings.COMPONENT).to({
-      path: "/explorer",
+      path: '/explorer',
     });
     this.component(RestExplorerComponent);
 
@@ -40,8 +40,8 @@ export class BackendApplication extends BootMixin(
     this.bootOptions = {
       controllers: {
         // Customize ControllerBooter Conventions here
-        dirs: ["controllers"],
-        extensions: [".controller.js"],
+        dirs: ['controllers'],
+        extensions: ['.controller.js'],
         nested: true,
       },
     };
@@ -52,7 +52,7 @@ export class BackendApplication extends BootMixin(
    */
   protected configureFileUpload(destination?: string) {
     // Upload files to `dist/.sandbox` by default
-    destination = destination ?? path.join(__dirname, "assets");
+    destination = destination ?? path.join(__dirname, 'assets');
     this.bind(STORAGE_DIRECTORY).to(destination);
     const multerOptions: multer.Options = {
       storage: multer.diskStorage({

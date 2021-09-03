@@ -3,7 +3,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import { inject } from "@loopback/core";
+import {inject} from '@loopback/core';
 import {
   get,
   param,
@@ -11,17 +11,18 @@ import {
   Request,
   requestBody,
   response,
-  Response,
   RestBindings,
-} from "@loopback/rest";
-import { FILE_UPLOAD_SERVICE } from "../keys";
-import { FileUploadHandler } from "../types";
+} from '@loopback/rest';
+import {FILE_UPLOAD_SERVICE} from '../keys';
+import {FileUploadHandler} from '../types';
 
-import dotenv from "dotenv";
+import {Response} from 'express-serve-static-core';
 
-import AWS from "aws-sdk";
+import dotenv from 'dotenv';
 
-import fs from "fs";
+import AWS from 'aws-sdk';
+
+import fs from 'fs';
 
 dotenv.config();
 
@@ -30,7 +31,7 @@ const s3 = new AWS.S3({
   secretAccessKey: process.env.AWS_ACCESS_KEY_SECRET,
 });
 
-const BUCKET_NAME = process.env.AWS_BUCKET_NAME ?? "";
+const BUCKET_NAME = process.env.AWS_BUCKET_NAME ?? '';
 
 /**
  * A controller to handle file uploads using multipart/form-data media type
@@ -41,22 +42,22 @@ export class FileUploadController {
    * @param handler - Inject an express request handler to deal with the request
    */
   constructor(
-    @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler
+    @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler,
   ) {}
 
-  @get("/files")
+  @get('/files')
   @response(200, {
     content: {
-      "application/json": {
+      'application/json': {
         schema: {
-          type: "array",
+          type: 'array',
           items: {
-            type: "string",
+            type: 'string',
           },
         },
       },
     },
-    description: "A list of files",
+    description: 'A list of files',
   })
   async listFiles() {
     const f = async () => {
@@ -67,7 +68,7 @@ export class FileUploadController {
         let files: string[] = [];
         s3.listObjectsV2(params, (err, data) => {
           if (err) reject(err);
-          files = data.Contents?.map((obj) => obj.Key ?? "") ?? [];
+          files = data.Contents?.map(obj => obj.Key ?? '') ?? [];
           resolve(files);
         });
       });
@@ -76,18 +77,18 @@ export class FileUploadController {
     return f();
   }
 
-  @get("/files/download")
+  @get('/files/download')
   @response(200, {
     content: {
-      "application/json": {
+      'application/json': {
         schema: {
-          type: "object",
+          type: 'object',
         },
       },
     },
-    description: "Files and fields",
+    description: 'Files and fields',
   })
-  async getFile(@param.query.string("file") file: string) {
+  async getFile(@param.query.string('file') file: string) {
     const f = async () => {
       return new Promise((resolve, reject) => {
         const params = {
@@ -104,27 +105,27 @@ export class FileUploadController {
     return f();
   }
 
-  @post("/files")
+  @post('/files')
   @response(200, {
     content: {
-      "application/json": {
+      'application/json': {
         schema: {
-          type: "object",
+          type: 'object',
         },
       },
     },
-    description: "Files and fields",
+    description: 'Files and fields',
   })
   async fileUpload(
     @requestBody.file()
-    request: Request,
-    @inject(RestBindings.Http.RESPONSE) response: Response
+    req: Request,
+    @inject(RestBindings.Http.RESPONSE) res: Response,
   ): Promise<object> {
     return new Promise<object>((resolve, reject) => {
-      this.handler(request, response, (err: unknown) => {
+      this.handler(req, res, (err: unknown) => {
         if (err) reject(err);
         else {
-          resolve(FileUploadController.getFilesAndFields(request));
+          resolve(FileUploadController.getFilesAndFields(req));
         }
       });
     });
@@ -153,18 +154,18 @@ export class FileUploadController {
       }
     }
 
-    const upload_to_bucket = (f: globalThis.Express.Multer.File) => {
+    const uploadToBucket = (f: globalThis.Express.Multer.File) => {
       fs.readFile(f.path, (err, data) => {
         if (err) {
           throw err;
         }
         const params = {
-          Bucket: process.env.AWS_BUCKET_NAME ?? "",
+          Bucket: process.env.AWS_BUCKET_NAME ?? '',
           Key: f.originalname,
           Body: data,
         };
 
-        s3.upload(params, (s3err: Error, _: any) => {
+        s3.upload(params, (s3err: Error, _: AWS.S3.ManagedUpload.SendData) => {
           if (s3err) throw s3err;
           console.log(`File ${f.originalname} is uploaded successfully`);
         });
@@ -172,13 +173,13 @@ export class FileUploadController {
     };
 
     if (Array.isArray(uploadedFiles)) {
-      uploadedFiles.forEach(upload_to_bucket);
+      uploadedFiles.forEach(uploadToBucket);
     } else {
       for (const filename in uploadedFiles) {
-        uploadedFiles[filename].forEach(upload_to_bucket);
+        uploadedFiles[filename].forEach(uploadToBucket);
       }
     }
 
-    return { files, fields: request.body };
+    return {files, fields: request.body};
   }
 }
